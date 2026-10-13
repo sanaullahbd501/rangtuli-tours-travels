@@ -49,9 +49,9 @@
       });
     }
   }
-  const generalMessage = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের ট্যুর সম্পর্কে জানতে চাই।";
-  setLink("whatsapp-cta", waUrl(generalMessage), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
-  setLink("whatsapp-float", waUrl(generalMessage), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
+  const greeting = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের ট্যুর সম্পর্কে জানতে চাই।";
+  setLink("whatsapp-cta", waUrl(greeting), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
+  setLink("whatsapp-float", waUrl(greeting), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
   setLink("messenger-cta", messengerUrl(), "js/config.js ফাইলে Facebook Page URL যাচাই করুন।");
 
   function make(tag, cls, content) {
@@ -60,13 +60,26 @@
     if (content !== undefined) el.textContent = content;
     return el;
   }
-  function addDetails(parent, label, key, tour) {
+
+  // Break fields at semicolons while preserving clean spacing.
+  function formattedText(parent, value) {
+    const parts = String(value).split(";").map(s => s.trim()).filter(Boolean);
+    parts.forEach(function (part) {
+      parent.appendChild(make("span", "tour-text-line", part));
+    });
+  }
+
+  function addDetail(parent, label, key, tour) {
     const value = text(tour, key);
     if (!value) return;
     const item = make("div", "tour-inline-detail-item");
-    item.append(make("h4", "", label), make("p", "", value));
+    item.appendChild(make("h4", "", label));
+    const content = make("div", "tour-inline-detail-copy");
+    formattedText(content, value);
+    item.appendChild(content);
     parent.appendChild(item);
   }
+
   function openDetails(card, tour) {
     const existing = card.querySelector(".tour-expanded-details");
     if (existing) {
@@ -80,8 +93,7 @@
       return;
     }
     const panel = make("div", "tour-expanded-details");
-    const title = make("h3", "tour-expanded-title", "প্যাকেজের বিস্তারিত");
-    panel.appendChild(title);
+    panel.appendChild(make("h3", "tour-expanded-title", "প্যাকেজের বিস্তারিত"));
     [
       ["গন্তব্য", "Destinations"],
       ["বিস্তারিত", "Description"],
@@ -96,7 +108,7 @@
       ["বুকিং অ্যামাউন্ট", "Booking Amount"],
       ["বুকিং পেমেন্টের তথ্য", "Booking Payment Details"],
       ["যোগাযোগ", "Contact Numbers (comma-separated)"]
-    ].forEach(pair => addDetails(panel, pair[0], pair[1], tour));
+    ].forEach(pair => addDetail(panel, pair[0], pair[1], tour));
 
     const name = text(tour, "Tour Name") || "একটি ট্যুর";
     const price = text(tour, "Price Options");
@@ -108,6 +120,7 @@
     wa.href = waUrl(message) || "#contact";
     wa.target = "_blank";
     wa.rel = "noopener noreferrer";
+    actions.appendChild(wa);
     const ms = make("a", "tour-detail-messenger", "Messenger-এ যোগাযোগ ↗");
     ms.href = messengerUrl() || "#contact";
     ms.target = "_blank";
@@ -116,7 +129,7 @@
       e.preventDefault();
       alert("js/config.js ফাইলে সঠিক Facebook Page URL বসান।");
     });
-    actions.append(wa, ms);
+    actions.appendChild(ms);
     panel.appendChild(actions);
 
     const trigger = card.querySelector(".live-tour-details");
@@ -131,6 +144,7 @@
     return text(tour, "Image URLs (comma-separated)").split(",").map(s => s.trim())
       .find(s => /^https?:\/\//i.test(s)) || "";
   }
+
   function createCard(tour, index) {
     const card = make("article", "live-tour-card live-tour-photo-card");
     const image = make("div", "live-tour-image");
@@ -150,18 +164,24 @@
       image.classList.add("live-tour-image-empty");
       image.appendChild(make("span", "", "RANGTULI JOURNEYS"));
     }
-    const shade = make("div", "live-tour-image-shade");
-    image.appendChild(shade);
+    image.appendChild(make("div", "live-tour-image-shade"));
     card.appendChild(image);
 
     const content = make("div", "live-tour-photo-content");
     content.appendChild(make("span", "live-tour-photo-kicker",
       String(index + 1).padStart(2, "0") + " / " + (text(tour, "Tour Category") || "JOURNEY").toUpperCase()));
     content.appendChild(make("h3", "live-tour-title", text(tour, "Tour Name") || "নতুন ট্যুর"));
-    const destination = text(tour, "Destinations");
-    if (destination) content.appendChild(make("p", "live-tour-destination", destination));
-    const price = text(tour, "Price Options");
-    if (price) content.appendChild(make("p", "live-tour-price", price));
+
+    // On the first card face, show only the Regular price, never the full price-options string.
+    const rawPrice = text(tour, "Price Options");
+    const regularMatch = rawPrice.match(/(?:^|[;,\n])\s*Regular\s*:\s*([^;,\n]+)/i);
+    const regularPrice = regularMatch ? regularMatch[1].trim() : "";
+    if (regularPrice) {
+      const priceNode = make("p", "live-tour-price", "Regular: " + regularPrice);
+      content.appendChild(priceNode);
+    } else if (rawPrice && !/couple\s*:/i.test(rawPrice) && !/;/i.test(rawPrice)) {
+      content.appendChild(make("p", "live-tour-price", rawPrice));
+    }
 
     const details = make("button", "live-tour-details");
     details.type = "button";
@@ -182,8 +202,7 @@
     return arr;
   }
   function showMessage(grid, message, error) {
-    if (!grid) return;
-    grid.replaceChildren(make("p", "tour-loading" + (error ? " tour-error" : ""), message));
+    if (grid) grid.replaceChildren(make("p", "tour-loading" + (error ? " tour-error" : ""), message));
   }
   function render(grid, tours, emptyMessage, moreButton) {
     if (!grid) return;
