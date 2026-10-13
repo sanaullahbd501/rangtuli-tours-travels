@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#123b2b">
+  <meta name="theme-color" content="#103b2b">
   <meta name="description" content="রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের সঙ্গে বাংলাদেশের সৌন্দর্য আবিষ্কার করুন। যেখানে পথ, সেখানেই গল্প।">
   <meta property="og:title" content="Rangtuli Tours & Travels — যেখানে পথ, সেখানেই গল্প">
   <meta property="og:description" content="আপনার পরবর্তী ভ্রমণ শুরু হোক রংতুলির সঙ্গে।">
@@ -14,6 +14,91 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/live-tours.css">
+  <style>
+    :root{--forest:#103b2b;--forest-deep:#09271c;--lime:#c9f06c;--cream:#f7f7f0;--paper:#fff;--ink:#15281f;--muted:#6a776e;--line:#e2e8df}
+    html{scroll-padding-top:92px}
+    body{background:#fff;color:var(--ink)}
+    .site-header{background:rgba(255,255,255,.92);border-bottom-color:#e9eee8}
+    .nav-wrap{height:78px}
+    .brand-mark{border-radius:12px;background:var(--forest)}
+    .brand-copy strong{letter-spacing:.13em}
+    .primary-nav{gap:25px}
+    .nav-cta{background:var(--forest);color:#fff;border-color:var(--forest);border-radius:999px;padding:10px 17px}
+    .hero{min-height:690px;border-radius:0 0 28px 28px}
+    .hero-image{background-image:url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=90");background-position:center 52%}
+    .hero-shade{background:linear-gradient(90deg,rgba(5,28,19,.82) 0%,rgba(5,28,19,.48) 50%,rgba(5,28,19,.08) 100%),linear-gradient(0deg,rgba(5,28,19,.42),transparent 42%)}
+    .hero-content{padding-top:58px;padding-bottom:90px}
+    .hero h1{font-size:clamp(52px,7vw,88px);line-height:1.13;letter-spacing:-.045em}
+    .hero-description{max-width:490px;font-size:18px;line-height:1.9}
+    .button{border-radius:999px;padding:14px 22px;min-height:52px}
+    .button-lime{box-shadow:0 8px 24px rgba(201,240,108,.15)}
+    .hero-note{margin-top:52px}
+    .hero-bottom{letter-spacing:.2em}
+    .section-pad{padding:92px 0}
+    .intro{background:var(--cream)}
+    .intro-grid{gap:84px}
+    .intro h2,.section-heading h2,.manifesto h2,.closing h2{letter-spacing:-.035em}
+    .intro h2 em{color:#668b4b}
+    .eyebrow{letter-spacing:.18em}
+    .section-heading{margin-bottom:32px}
+    .section-heading>p{line-height:1.9}
+    .destination-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .destination-card,.destination-card.card-tall{min-height:320px;border-radius:16px}
+    .destination-card.card-tall{min-height:390px}
+    .destination-card img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+    .card-overlay{background:linear-gradient(0deg,rgba(5,26,18,.88),rgba(5,26,18,.12) 70%,rgba(5,26,18,.02))}
+    .card-content{inset:auto 22px 22px}
+    .card-content h3{font-size:30px}
+    .book-link{border-bottom:0}
+    .content-note{background:#f7f8f4;border:1px solid var(--line);padding:12px 15px;border-radius:10px;line-height:1.7}
+    .live-tours{background:#fff}
+    .live-tours-soft{background:#f5f7f1}
+    .live-tour-grid{gap:18px}
+    .live-tour-card{border:1px solid #e5eae2;border-radius:16px;box-shadow:0 8px 28px rgba(17,48,31,.035);transition:transform .2s,box-shadow .2s}
+    .live-tour-card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(17,48,31,.09)}
+    .live-tour-image{height:220px;background:linear-gradient(135deg,#103b2b,#88ad4e)}
+    .live-tour-body{padding:22px}
+    .live-tour-body h3{font-size:23px}
+    .live-tour-tag{border-radius:999px}
+    .live-tour-meta span{border-radius:999px}
+    .live-tour-price{font-size:17px}
+    .live-tour-book{width:100%;border-radius:999px;margin-top:auto}
+    .tour-loading{background:#fff;border:1px dashed #cbd7c7;border-radius:14px;padding:24px;color:#617065}
+    .manifesto{background:var(--forest);border-radius:26px;margin:0 18px}
+    .manifesto-grid{gap:72px}
+    .point{padding:22px 0}
+    .point h3{font-size:19px}
+    .closing{background:var(--cream)}
+    .closing-inner{max-width:760px}
+    .closing h2{font-size:clamp(42px,5.5vw,68px)}
+    .closing-actions .button{min-width:210px}
+    .button-dark{background:var(--forest)}
+    .button-outline{border-radius:999px}
+    .site-footer{margin-top:0;background:#09271c}
+    .footer-top{padding-bottom:24px}
+    .footer-bottom{font-family:var(--font-en);letter-spacing:.01em}
+    .floating-whatsapp{width:56px;height:56px;right:24px;bottom:24px;box-shadow:0 10px 28px rgba(4,36,20,.22)}
+    @media(max-width:850px){
+      .nav-wrap{height:72px}.primary-nav{gap:0}
+      .hero{min-height:640px;border-radius:0 0 20px 20px}
+      .section-pad{padding:72px 0}
+      .intro-grid,.manifesto-grid{gap:30px}
+      .destination-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .destination-card,.destination-card.card-tall{min-height:330px}
+      .manifesto{margin:0 10px;border-radius:20px}
+    }
+    @media(max-width:520px){
+      .hero{min-height:620px}.hero h1{font-size:clamp(43px,11vw,54px)}
+      .hero-description{font-size:16px}
+      .section-pad{padding:58px 0}
+      .destination-grid{grid-template-columns:1fr}
+      .destination-card,.destination-card.card-tall{min-height:340px}
+      .live-tour-grid{grid-template-columns:1fr}
+      .manifesto{margin:0 7px}
+      .closing-actions .button{min-width:0}
+      .floating-whatsapp{right:15px;bottom:15px;width:50px;height:50px}
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">মূল কনটেন্টে যান</a>
@@ -29,25 +114,24 @@
         <a href="#day-tours">ডে ট্যুর</a>
         <a href="#relax-tours">রিল্যাক্স ট্যুর</a>
         <a href="#story">আমাদের গল্প</a>
-        <a href="#why-rangtuli">কেন রংতুলি</a>
-        <a href="#contact" class="nav-cta">যোগাযোগ করুন <span aria-hidden="true">↗</span></a>
+        <a href="#contact" class="nav-cta">যোগাযোগ <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
   </header>
 
   <main id="main">
     <section class="hero">
-      <div class="hero-image" role="img" aria-label="সবুজ পাহাড় ও মেঘে ঢাকা বাংলাদেশের প্রাকৃতিক দৃশ্য"></div>
+      <div class="hero-image" role="img" aria-label="বাংলাদেশের সবুজ প্রকৃতি ও পাহাড়ের মনোরম দৃশ্য"></div>
       <div class="hero-shade"></div>
       <div class="container hero-content">
         <p class="eyebrow light"><span></span> EXPLORE · EXPERIENCE · REMEMBER</p>
         <h1>যেখানে পথ,<br><em>সেখানেই গল্প।</em></h1>
-        <p class="hero-description">চেনা গণ্ডির বাইরে, প্রকৃতির আরও কাছে। আপনার পরবর্তী ভ্রমণ হোক নতুন গল্পের শুরু।</p>
+        <p class="hero-description">চেনা গণ্ডির বাইরে, প্রকৃতির আরও কাছে। নতুন গন্তব্য, সুন্দর পরিকল্পনা আর মনে রাখার মতো মুহূর্ত—আপনার পরের যাত্রা শুরু হোক রংতুলির সঙ্গে।</p>
         <div class="hero-actions">
-          <a class="button button-lime" href="#destinations">গন্তব্য ঘুরে দেখুন <span aria-hidden="true">↗</span></a>
-          <a class="text-link light-link" href="#story">রংতুলিকে জানুন <span aria-hidden="true">↓</span></a>
+          <a class="button button-lime" href="#day-tours">ট্যুর প্যাকেজ দেখুন <span aria-hidden="true">↗</span></a>
+          <a class="text-link light-link" href="#destinations">গন্তব্য আবিষ্কার করুন <span aria-hidden="true">↓</span></a>
         </div>
-        <div class="hero-note"><span class="note-dot"></span> বাংলাদেশের সৌন্দর্য, নতুন চোখে</div>
+        <div class="hero-note"><span class="note-dot"></span> আপনার পরের গল্পের সঙ্গী</div>
       </div>
       <div class="hero-bottom container"><span>RANGTULI JOURNEYS</span><span>01 — DISCOVER</span></div>
     </section>
@@ -59,8 +143,8 @@
           <h2>ভ্রমণ শুধু গন্তব্য নয়,<br><em>মনে রাখার মতো অনুভূতি।</em></h2>
         </div>
         <div class="intro-copy">
-          <p>রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের সঙ্গে প্রতিটি যাত্রা হোক সুন্দর পরিকল্পনা, নতুন অভিজ্ঞতা আর একসঙ্গে স্মৃতি গড়ার সুযোগ। আমরা চাই, পথের প্রতিটি বাঁকে আপনি খুঁজে পান নিজের গল্প।</p>
-          <a class="text-link dark-link" href="#contact">চলুন, পরিকল্পনা শুরু করি <span aria-hidden="true">↗</span></a>
+          <p>আমরা বিশ্বাস করি, ভালো ভ্রমণ মানে শুধু কোথাও পৌঁছানো নয়—পথে নতুন কিছু দেখা, প্রিয় মানুষদের সঙ্গে সময় কাটানো আর ফিরে এসে গল্প করার মতো স্মৃতি নিয়ে ফেরা। আপনার সময় ও পছন্দের সঙ্গে মানানসই ভ্রমণ খুঁজে নিতে রংতুলি আছে পাশে।</p>
+          <a class="text-link dark-link" href="#contact">আপনার ভ্রমণ নিয়ে কথা বলুন <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </section>
@@ -68,45 +152,44 @@
     <section class="destinations section-pad" id="destinations">
       <div class="container">
         <div class="section-heading">
-          <div><p class="eyebrow"><span></span> FIND YOUR NEXT STORY</p><h2>কোথায় যাওয়া যায়?</h2></div>
-          <p>পাহাড়, সমুদ্র কিংবা সবুজের নীরবতা—আপনার পরের গল্পের জন্য বেছে নিন একটি গন্তব্য।</p>
+          <div><p class="eyebrow"><span></span> FIND YOUR NEXT STORY</p><h2>কোথায় যেতে চান?</h2></div>
+          <p>মেঘে ঢাকা পাহাড় থেকে নীল সমুদ্র—আপনার মুড অনুযায়ী বেছে নিন পরের গন্তব্য। ট্যুর সম্পর্কে জানতে যেকোনো কার্ডে ক্লিক করুন।</p>
         </div>
         <div class="destination-grid" id="destination-grid">
           <article class="destination-card card-tall">
             <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=85" alt="মেঘে ঘেরা পাহাড়ি গন্তব্য" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">01 / HILLS</span><h3>সাজেক</h3><p>মেঘের কাছাকাছি কয়েকটি দিন</p><a href="#" class="book-link" data-tour="সাজেক">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">01 / HILLS</span><h3>সাজেক</h3><p>মেঘের কাছাকাছি কয়েকটি দিন</p><a href="#contact" class="book-link" data-tour="সাজেক">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
           <article class="destination-card">
             <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=900&q=85" alt="নীল সমুদ্রের ঢেউ" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">02 / SEA</span><h3>কক্সবাজার</h3><p>সমুদ্রের পাশে একটু অবসর</p><a href="#" class="book-link" data-tour="কক্সবাজার">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">02 / SEA</span><h3>কক্সবাজার</h3><p>সমুদ্রের পাশে একটু অবসর</p><a href="#contact" class="book-link" data-tour="কক্সবাজার">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
           <article class="destination-card">
             <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=85" alt="হ্রদ ও পাহাড়ের শান্ত প্রাকৃতিক দৃশ্য" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">03 / NATURE</span><h3>নীলাদ্রি লেক</h3><p>সবুজ পাহাড় আর নীল জলের টান</p><a href="#" class="book-link" data-tour="নীলাদ্রি লেক">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">03 / NATURE</span><h3>নীলাদ্রি লেক</h3><p>সবুজ পাহাড় আর নীল জলের টান</p><a href="#contact" class="book-link" data-tour="নীলাদ্রি লেক">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
           <article class="destination-card">
             <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=85" alt="প্রকৃতির মাঝে শান্ত জলরাশি" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">04 / WATERFALL</span><h3>রূপসী ঝরনা</h3><p>প্রকৃতির কাছে ফিরে যাওয়া</p><a href="#" class="book-link" data-tour="রূপসী ঝরনা">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">04 / WATERFALL</span><h3>রূপসী ঝরনা</h3><p>প্রকৃতির কাছে ফিরে যাওয়া</p><a href="#contact" class="book-link" data-tour="রূপসী ঝরনা">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
           <article class="destination-card">
             <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85" alt="খোলা প্রকৃতি ও পাহাড়ের দৃশ্য" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">05 / ADVENTURE</span><h3>চন্দ্রনাথ</h3><p>পথের সঙ্গে একটু অ্যাডভেঞ্চার</p><a href="#" class="book-link" data-tour="চন্দ্রনাথ">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">05 / ADVENTURE</span><h3>চন্দ্রনাথ</h3><p>পথের সঙ্গে একটু অ্যাডভেঞ্চার</p><a href="#contact" class="book-link" data-tour="চন্দ্রনাথ">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
           <article class="destination-card">
             <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=85" alt="সৈকতের বালু ও নীল সমুদ্র" loading="lazy">
-            <div class="card-overlay"></div><div class="card-content"><span class="card-number">06 / COAST</span><h3>গুলিয়াখালী</h3><p>সবুজ আর সমুদ্রের অনন্য মেলবন্ধন</p><a href="#" class="book-link" data-tour="গুলিয়াখালী">এই ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
+            <div class="card-overlay"></div><div class="card-content"><span class="card-number">06 / COAST</span><h3>গুলিয়াখালী</h3><p>সবুজ আর সমুদ্রের অনন্য মেলবন্ধন</p><a href="#contact" class="book-link" data-tour="গুলিয়াখালী">ট্যুর সম্পর্কে জানুন <span>↗</span></a></div>
           </article>
         </div>
-        <p class="content-note">ছবিগুলো আপাতত ডিজাইন প্রিভিউয়ের জন্য। প্রকাশের আগে রংতুলির নিজস্ব ভ্রমণের ছবি দিয়ে বদলে নিন। ট্যুরের মূল্য ও তারিখ নিশ্চিত না হওয়া পর্যন্ত এখানে দেখানো হয়নি।</p>
+        <p class="content-note">ছবিগুলো আপাতত প্রিভিউয়ের জন্য ব্যবহৃত। প্রকাশের আগে সম্ভব হলে রংতুলির নিজস্ব ভ্রমণের ছবি ব্যবহার করুন। ট্যুরের বর্তমান মূল্য ও তারিখ জানতে প্যাকেজ সেকশন দেখুন বা সরাসরি যোগাযোগ করুন।</p>
       </div>
     </section>
 
-    <!-- Live tour sections: data is loaded by js/main.js from the Cloudflare Worker API. -->
     <section class="live-tours section-pad" id="day-tours">
       <div class="container">
         <div class="section-heading">
           <div><p class="eyebrow"><span></span> ONE DAY, MANY MEMORIES</p><h2>ডে ট্যুর</h2></div>
-          <p>একদিনের ছুটিতে বেরিয়ে পড়ুন নতুন কোনো গন্তব্যে। প্যাকেজের বিস্তারিত জেনে আপনার পছন্দের ট্যুর বেছে নিন।</p>
+          <p>ছোট ছুটিতে নতুন জায়গা ঘুরে আসুন। প্যাকেজের মূল্য, সময়সূচি ও বিস্তারিত দেখে পছন্দের ট্যুর বেছে নিন।</p>
         </div>
         <div class="live-tour-grid" id="day-tour-grid" aria-live="polite">
           <p class="tour-loading">ডে ট্যুরের তথ্য লোড হচ্ছে…</p>
@@ -118,7 +201,7 @@
       <div class="container">
         <div class="section-heading">
           <div><p class="eyebrow"><span></span> SLOW DOWN &amp; UNWIND</p><h2>রিল্যাক্স ট্যুর</h2></div>
-          <p>সময় নিয়ে ঘুরুন, আরাম করে থাকুন, প্রিয় মানুষদের সঙ্গে কাটান স্মরণীয় কিছু মুহূর্ত।</p>
+          <p>আরাম করে ঘুরুন, পছন্দমতো থাকার ব্যবস্থা বেছে নিন, প্রিয় মানুষদের সঙ্গে কাটান নির্ভার সময়।</p>
         </div>
         <div class="live-tour-grid" id="relax-tour-grid" aria-live="polite">
           <p class="tour-loading">রিল্যাক্স ট্যুরের তথ্য লোড হচ্ছে…</p>
@@ -131,13 +214,13 @@
         <div class="manifesto-copy">
           <p class="eyebrow light"><span></span> WHY TRAVEL WITH US</p>
           <h2>ভালো ভ্রমণ শুরু হয়<br><em>ভালো পরিকল্পনা থেকে।</em></h2>
-          <p>আপনার পছন্দ, সময় ও বাজেট বুঝে পরের যাত্রার কথা বলুন আমাদের সঙ্গে। বিস্তারিত জেনে তারপর সিদ্ধান্ত নিন—ভ্রমণ পরিকল্পনা হোক সহজ ও স্বচ্ছ।</p>
-          <a class="button button-lime" href="#contact">আপনার ট্যুর নিয়ে কথা বলুন <span>↗</span></a>
+          <p>ট্যুর বেছে নেওয়ার আগে প্রয়োজনীয় তথ্য জেনে নিন। আপনার পছন্দ, সময় ও বাজেট নিয়ে কথা বলুন আমাদের সঙ্গে—সিদ্ধান্ত নিন নিজের সুবিধামতো।</p>
+          <a class="button button-lime" href="#contact">পরিকল্পনা শুরু করুন <span>↗</span></a>
         </div>
         <div class="manifesto-points">
           <div class="point"><span>01</span><div><h3>সহজ যোগাযোগ</h3><p>WhatsApp বা Messenger-এ সরাসরি কথা বলুন।</p></div><span class="point-icon">↗</span></div>
-          <div class="point"><span>02</span><div><h3>পরিষ্কার তথ্য</h3><p>ট্যুরের তারিখ, খরচ ও অন্তর্ভুক্ত সেবা জেনে নিন।</p></div><span class="point-icon">↗</span></div>
-          <div class="point"><span>03</span><div><h3>স্মৃতি গড়ার সুযোগ</h3><p>নতুন জায়গা আবিষ্কার করুন, সঙ্গে নিয়ে ফিরুন গল্প।</p></div><span class="point-icon">↗</span></div>
+          <div class="point"><span>02</span><div><h3>তথ্য জেনে সিদ্ধান্ত</h3><p>মূল্য, সময়সূচি ও প্যাকেজে কী আছে তা জেনে নিন।</p></div><span class="point-icon">↗</span></div>
+          <div class="point"><span>03</span><div><h3>আপনার পছন্দের ভ্রমণ</h3><p>একদিনের ট্যুর হোক বা আরামদায়ক ছুটি—নিজের মতো বেছে নিন।</p></div><span class="point-icon">↗</span></div>
         </div>
       </div>
     </section>
@@ -146,7 +229,7 @@
       <div class="container closing-inner">
         <p class="eyebrow"><span></span> YOUR NEXT CHAPTER</p>
         <h2>পরের গল্পটা<br><em>কোথায় লিখবেন?</em></h2>
-        <p>আপনার পছন্দের গন্তব্য বলুন। আমরা কথা বলি আপনার পরবর্তী ভ্রমণ নিয়ে।</p>
+        <p>আপনার পছন্দের গন্তব্য বা ট্যুরের নাম বলুন। আমরা কথা বলি আপনার পরবর্তী ভ্রমণ নিয়ে।</p>
         <div class="closing-actions">
           <a class="button button-dark" id="whatsapp-cta" href="#" target="_blank" rel="noopener">WhatsApp-এ কথা বলুন <span>↗</span></a>
           <a class="button button-outline" id="messenger-cta" href="#" target="_blank" rel="noopener">Messenger খুলুন <span>↗</span></a>
@@ -167,6 +250,7 @@
     </div>
     <div class="container footer-bottom"><span>© <span id="year"></span> Rangtuli Tours &amp; Travels</span><span>Made for journeys worth remembering.</span></div>
   </footer>
+
   <a class="floating-whatsapp" id="whatsapp-float" href="#" target="_blank" rel="noopener" aria-label="WhatsApp-এ যোগাযোগ করুন">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.8L0 24l6.5-1.7a12 12 0 0 0 5.6 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4ZM12.1 21.7a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.7 9.7 0 0 1-1.5-5.2c0-5.4 4.4-9.8 9.8-9.8 2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.7 9.9Zm5.4-7.4c-.3-.1-1.6-.8-1.9-.9-.2-.1-.4-.1-.6.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.6-.7 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.2-.3-.3-.6-.4Z"/></svg>
   </a>
