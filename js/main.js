@@ -20,7 +20,9 @@
     const part = raw.split(';').map(x => x.trim()).find(x => /regular|রেগুলার/i.test(x));
     return part || raw.split(';').map(x => x.trim()).filter(Boolean)[0] || 'মূল্য জানতে যোগাযোগ করুন';
   };
-  const images = t => String(get(t, 'Image URLs', 'imageUrls', 'images', 'imageUrl') || '').split(/[;,\n]/).map(x => x.trim()).filter(x => /^https?:\/\//i.test(x));
+  
+const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 'imageUrls', 'images', 'imageUrl') || '').split(/[;,\n]/).map(x => x.trim()).filter(x => /^https?:\/\//i.test(x));
+
   const published = t => !/^(no|false|0|draft|unpublished|hidden|বন্ধ)$/i.test(String(get(t, 'Website Status', 'websiteStatus', 'status') || '').trim());
   const text = v => String(v ?? '').trim();
   const safe = s => text(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
