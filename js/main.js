@@ -25,19 +25,41 @@
   const text = v => String(v ?? '').trim();
   const safe = s => text(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const tourUrl = (t, type) => `tour.html?id=${encodeURIComponent(id(t))}&type=${encodeURIComponent(type)}`;
-  function card(t, type) {
-    const pic = images(t)[0];
-    return `<a class="rt-card" href="${tourUrl(t,type)}">${pic ? `<img class="rt-card-img" src="${safe(pic)}" alt="${safe(name(t))}" loading="lazy">` : '<div class="rt-card-img rt-no-image">রংতুলির সঙ্গে ঘুরে আসুন</div>'}<div class="rt-card-body"><span class="rt-card-tag">${type === 'day' ? 'ডে ট্যুর' : 'রিল্যাক্স ট্যুর'}</span><h3>${safe(name(t))}</h3><p class="rt-card-price">${safe(price(t))}</p><span class="rt-card-link">বিস্তারিত দেখুন ↗</span></div></a>`;
+
+  // The homepage tour cards deliberately reuse the destination section's established visual language.
+  function card(t, type, index = 0) {
+    const pics = images(t);
+    const pic = pics[0];
+    const image = pic
+      ? `<img src="${safe(pic)}" alt="${safe(name(t))}" loading="lazy" onerror="this.style.display='none';this.parentElement.classList.add('tour-image-fallback')">`
+      : '';
+    const label = type === 'day' ? 'DAY TOUR' : 'RELAX TOUR';
+    return `<a class="destination-card tour-destination-card" href="${tourUrl(t,type)}" aria-label="${safe(name(t))} — বিস্তারিত দেখুন">${image}<div class="card-overlay"></div><div class="card-content"><span class="card-number">${String(index+1).padStart(2,'0')} / ${label}</span><h3>${safe(name(t))}</h3><p>${safe(price(t))}</p><span class="book-link">এ ট্যুর সম্পর্কে জানুন <span>↗</span></span></div></a>`;
   }
+
   function homeGrid(gridId, moreId, tours, type) {
     const grid = document.getElementById(gridId); if (!grid) return;
     const btn = document.getElementById(moreId);
     const list = tours.filter(published);
-    if (!list.length) { grid.innerHTML = '<p class="tour-loading">নতুন ট্যুরের তথ্য শিগগিরই যোগ করা হবে।</p>'; if(btn) btn.hidden = true; return; }
-    const first = list.slice(0, 3), rest = list.slice(3);
-    grid.innerHTML = first.map(t => card(t,type)).join('') + (rest.length ? `<div class="rt-more-card">${card(rest[0],type)}<div class="rt-more-shade"><a class="rt-more-circle" href="tours.html?type=${type}">আরও<br>দেখুন <span>↗</span></a></div></div>` : '');
-    if (btn) { btn.hidden = true; }
+    if (!list.length) {
+      grid.innerHTML = '<p class="tour-loading">নতুন ট্যুরের তথ্য শিগগিরই যোগ করা হবে।</p>';
+      if (btn) btn.hidden = true;
+      return;
+    }
+    const first = list.slice(0, 3);
+    const rest = list.slice(3);
+    grid.innerHTML = first.map((t,i) => card(t,type,i)).join('');
+    // Desktop: fourth card sits in the same visual row, peeking in from the right.
+    // Small screens keep the requested two-column grid without an awkward partial card.
+    if (rest.length && window.matchMedia('(min-width: 801px)').matches) {
+      const peek = document.createElement('div');
+      peek.className = 'rt-more-card';
+      peek.innerHTML = card(rest[0],type,3) + `<div class="rt-more-shade"><a class="rt-more-circle" href="tours.html?type=${type}" aria-label="সব ${type==='day'?'ডে':'রিল্যাক্স'} ট্যুর দেখুন">আরও<br>দেখুন <span>↗</span></a></div>`;
+      grid.appendChild(peek);
+    }
+    if (btn) btn.hidden = true;
   }
+
   async function load() {
     try {
       const r = await fetch(api, {cache:'no-store'}); if (!r.ok) throw new Error('API');
@@ -52,11 +74,13 @@
       const detail=document.getElementById('tour-detail'); if(detail) detail.innerHTML='<p class="tour-loading">ট্যুরের তথ্য লোড করা যায়নি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।</p>';
     }
   }
+
   function section(label, value, multiline=true) {
     const v = text(value); if(!v) return '';
     const html = v.split(/;|\n/).map(s=>s.trim()).filter(Boolean).map(s=>`<li>${safe(s)}</li>`).join('');
     return `<section class="rt-detail-section"><h2>${safe(label)}</h2>${multiline ? `<ul>${html}</ul>` : `<p>${safe(v)}</p>`}</section>`;
   }
+
   function renderTourPage(day, relax) {
     const detail = document.getElementById('tour-detail');
     const all = [...day.map(t=>({...t,__type:'day'})),...relax.map(t=>({...t,__type:'relax'}))];
@@ -65,7 +89,7 @@
       const tour = all.find(t => id(t) === wantedId && (!type || t.__type === type)) || all.find(t=>id(t)===wantedId);
       if (!tour || !published(tour)) { detail.innerHTML='<div class="rt-not-found"><h1>ট্যুরটি পাওয়া যায়নি</h1><p>ট্যুরটি সরানো হয়ে থাকতে পারে অথবা লিংকটি সঠিক নয়।</p><a class="rt-primary-btn" href="tours.html?type=day">সব ট্যুর দেখুন</a></div>'; return; }
       const t=tour, pics=images(t), tourName=name(t), kind=t.__type;
-      const gallery = pics.length ? `<div class="rt-gallery">${pics.map((p,i)=>`<img src="${safe(p)}" alt="${safe(tourName)} — ছবি ${i+1}" loading="${i?'lazy':'eager'}">`).join('')}</div>` : '<div class="rt-gallery rt-no-image">রংতুলির সঙ্গে ঘুরে আসুন</div>';
+      const gallery = pics.length ? `<div class="rt-gallery">${pics.map((p,i)=>`<img src="${safe(p)}" alt="${safe(tourName)} — ছবি ${i+1}" loading="${i?'lazy':'eager'}" onerror="this.style.display='none'">`).join('')}</div>` : '<div class="rt-gallery rt-no-image">ছবি শিগগিরই যোগ করা হবে</div>';
       const booking = `আমি ${tourName} (${id(t)}) ট্যুরের বুকিং ও বিস্তারিত জানতে চাই।`;
       const waUrl = `https://wa.me/${encodeURIComponent(wa)}?text=${encodeURIComponent(booking)}`;
       const details = `<div class="rt-detail-layout"><div>${section('গন্তব্য',get(t,'Destinations','destinations'),false)}${section('ট্যুরের বিবরণ',get(t,'Description','description'),false)}${section('সময়সূচি',get(t,'Schedule','schedule'),false)}${section('সময়কাল',get(t,'Duration','duration'),false)}${section('ভ্রমণ পরিকল্পনা / Itinerary',get(t,'Itinerary','itinerary'))}${section('প্যাকেজে যা অন্তর্ভুক্ত',get(t,'Included','included'))}${section('প্যাকেজে যা অন্তর্ভুক্ত নয়',get(t,'Excluded','excluded'))}${section('রুম / থাকার ব্যবস্থা',get(t,'Room/Stay Options','roomStayOptions','roomOptions'))}${section('পিকআপ পয়েন্ট',get(t,'Pickup Points','pickupPoints'))}${section('বিশেষ নির্দেশনা',get(t,'Special Occasion Notes','specialOccasionNotes'))}</div><aside class="rt-booking-box"><span class="rt-card-tag">${kind==='day'?'ডে ট্যুর':'রিল্যাক্স ট্যুর'}</span><h2>মূল্য ও বুকিং</h2>${section('প্যাকেজ মূল্য',get(t,'Price Options','priceOptions','price'))}${section('বুকিং অ্যামাউন্ট',get(t,'Booking Amount','bookingAmount'),false)}${section('পেমেন্টের তথ্য',get(t,'Booking Payment Details','bookingPaymentDetails'),false)}${section('যোগাযোগ',get(t,'Contact Numbers','contactNumbers'))}<a class="rt-primary-btn" href="${waUrl}" target="_blank" rel="noopener">WhatsApp-এ বুকিং করুন</a><a class="rt-secondary-btn" href="${fb}" target="_blank" rel="noopener">Messenger-এ যোগাযোগ</a></aside></div>`;
@@ -73,14 +97,14 @@
       const others = (kind==='day'?day:relax).filter(published).filter(x=>id(x)!==id(t));
       const opposite = kind==='day'?'relax':'day';
       const related = document.getElementById('tour-related');
-      if(related) related.innerHTML=`<div class="rt-related-head"><h2>আরও ${kind==='day'?'ডে':'রিল্যাক্স'} ট্যুর</h2><a href="tours.html?type=${kind}">সব দেখুন ↗</a></div><div class="rt-card-grid">${others.slice(0,3).map(x=>card(x,kind)).join('') || '<p>এই মুহূর্তে অন্য ট্যুর নেই।</p>'}</div><p class="rt-opposite-link"><a href="tours.html?type=${opposite}">সব ${opposite==='day'?'ডে':'রিল্যাক্স'} ট্যুর দেখুন →</a></p>`;
+      if(related) related.innerHTML=`<div class="rt-related-head"><h2>আরও ${kind==='day'?'ডে':'রিল্যাক্স'} ট্যুর</h2><a href="tours.html?type=${kind}">সব দেখুন ↗</a></div><div class="rt-card-grid">${others.slice(0,3).map((x,i)=>card(x,kind,i)).join('') || '<p>এই মুহূর্তে অন্য ট্যুর নেই।</p>'}</div><p class="rt-opposite-link"><a href="tours.html?type=${opposite}">সব ${opposite==='day'?'ডে':'রিল্যাক্স'} ট্যুর দেখুন →</a></p>`;
     }
     const listing = document.getElementById('all-tours-grid');
     if (listing) {
       const type = new URLSearchParams(location.search).get('type')==='relax'?'relax':'day';
       const items=(type==='day'?day:relax).filter(published);
       const title=document.getElementById('all-tours-title'); if(title) title.textContent=type==='day'?'সব ডে ট্যুর':'সব রিল্যাক্স ট্যুর';
-      listing.innerHTML=items.length?items.map(t=>card(t,type)).join(''):'<p>এই ক্যাটাগরিতে এখনো কোনো ট্যুর প্রকাশ করা হয়নি।</p>';
+      listing.innerHTML=items.length?items.map((t,i)=>card(t,type,i)).join(''):'<p>এই ক্যাটাগরিতে এখনো কোনো ট্যুর প্রকাশ করা হয়নি।</p>';
       const opposite=document.getElementById('opposite-tours-link'); if(opposite) opposite.href=`tours.html?type=${type==='day'?'relax':'day'}`;
       const oppositeText=document.getElementById('opposite-tours-text'); if(oppositeText) oppositeText.textContent=`সব ${type==='day'?'রিল্যাক্স':'ডে'} ট্যুর দেখুন →`;
     }
