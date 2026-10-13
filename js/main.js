@@ -24,6 +24,12 @@
     const number = (config.whatsappNumber || "").replace(/\D/g, "");
     return number.length >= 10 ? "https://wa.me/" + number + "?text=" + encodeURIComponent(message) : "";
   }
+  function messengerUrl() {
+    const pageUrl = config.facebookPageUrl || "";
+    if (!pageUrl) return "";
+    const slug = pageUrl.replace(/\/+$/, "").split("/").pop();
+    return slug ? "https://m.me/" + slug : "";
+  }
   function setLink(id, url, fallback) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -31,15 +37,15 @@
     else {
       el.href = "#contact";
       el.addEventListener("click", function (e) {
-        e.preventDefault(); alert(fallback || "যোগাযোগের তথ্য পাওয়া যায়নি।");
+        e.preventDefault();
+        alert(fallback || "যোগাযোগের তথ্য পাওয়া যায়নি।");
       });
     }
   }
   const generalMessage = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের ট্যুর সম্পর্কে জানতে চাই।";
   setLink("whatsapp-cta", whatsappUrl(generalMessage), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
   setLink("whatsapp-float", whatsappUrl(generalMessage), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
-  const fbUrl = config.facebookPageUrl || "";
-  setLink("messenger-cta", fbUrl ? "https://m.me/" + fbUrl.replace(/\/+$/, "").split("/").pop() : "", "js/config.js ফাইলে Facebook Page URL যাচাই করুন।");
+  setLink("messenger-cta", messengerUrl(), "js/config.js ফাইলে Facebook Page URL যাচাই করুন।");
 
   const modal = document.createElement("div");
   modal.className = "tour-modal";
@@ -66,22 +72,50 @@
     section.append(heading, content);
     parent.appendChild(section);
   }
+  function addBookingButtons(parent, tour) {
+    const name = text(tour, "Tour Name") || "একটি ট্যুর";
+    const price = text(tour, "Price Options");
+    const message = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের " + name +
+      " সম্পর্কে জানতে চাই।" + (price ? "\nপ্যাকেজের মূল্য: " + price : "") +
+      "\nদয়া করে তারিখ, প্রাপ্যতা ও বুকিংয়ের নিয়ম জানাবেন।";
+    const actions = document.createElement("div");
+    actions.className = "live-tour-actions tour-modal-actions";
+
+    const wa = document.createElement("a");
+    wa.className = "button button-dark live-tour-book";
+    wa.textContent = "WhatsApp-এ বুকিং ↗";
+    wa.href = whatsappUrl(message) || "#contact";
+    wa.target = "_blank";
+    wa.rel = "noopener noreferrer";
+    actions.appendChild(wa);
+
+    const msgr = document.createElement("a");
+    msgr.className = "button button-outline live-tour-messenger";
+    msgr.textContent = "Messenger-এ বুকিং ↗";
+    msgr.href = messengerUrl() || "#contact";
+    msgr.target = "_blank";
+    msgr.rel = "noopener noreferrer";
+    if (!messengerUrl()) {
+      msgr.addEventListener("click", function (e) {
+        e.preventDefault();
+        alert("js/config.js ফাইলে সঠিক Facebook Page URL বসান।");
+      });
+    }
+    actions.appendChild(msgr);
+    parent.appendChild(actions);
+  }
   function showDetails(tour) {
     lastFocused = document.activeElement;
     modalContent.replaceChildren();
-    const name = text(tour, "Tour Name") || "ট্যুরের বিস্তারিত";
     const title = document.createElement("h2");
     title.id = "tour-modal-title";
-    title.textContent = name;
+    title.textContent = text(tour, "Tour Name") || "ট্যুরের বিস্তারিত";
     modalContent.appendChild(title);
 
     const price = text(tour, "Price Options");
-    if (price) {
-      const p = document.createElement("p");
-      p.className = "tour-modal-price";
-      p.textContent = price;
-      modalContent.appendChild(p);
-    }
+    if (price) modalContent.appendChild(Object.assign(document.createElement("p"), {
+      className: "tour-modal-price", textContent: price
+    }));
     [
       ["গন্তব্য", "Destinations"],
       ["বিস্তারিত", "Description"],
@@ -97,19 +131,7 @@
       ["বুকিং পেমেন্টের তথ্য", "Booking Payment Details"],
       ["যোগাযোগ", "Contact Numbers (comma-separated)"]
     ].forEach(function (pair) { addDetail(modalContent, pair[0], pair[1], tour); });
-
-    const actions = document.createElement("div");
-    actions.className = "tour-modal-actions";
-    const booking = document.createElement("a");
-    booking.className = "button button-dark";
-    booking.textContent = "WhatsApp-এ বুকিং / জিজ্ঞাসা ↗";
-    booking.href = whatsappUrl("আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের " + name + " সম্পর্কে জানতে চাই।\n\n" +
-      (price ? "প্যাকেজের মূল্য: " + price + "\n" : "") +
-      "দয়া করে তারিখ, আসন/রুমের প্রাপ্যতা ও বুকিংয়ের নিয়ম জানাবেন।") || "#contact";
-    booking.target = "_blank";
-    booking.rel = "noopener noreferrer";
-    actions.appendChild(booking);
-    modalContent.appendChild(actions);
+    addBookingButtons(modalContent, tour);
     modal.hidden = false;
     document.body.classList.add("tour-modal-open");
     modal.querySelector(".tour-modal-close").focus();
@@ -126,9 +148,8 @@
     if (e.key === "Escape" && !modal.hidden) closeModal();
   });
 
-  function value(tour, key) { return text(tour, key); }
   function imageUrl(tour) {
-    return value(tour, "Image URLs (comma-separated)").split(",").map(s => s.trim())
+    return text(tour, "Image URLs (comma-separated)").split(",").map(s => s.trim())
       .find(s => /^https?:\/\//i.test(s)) || "";
   }
   function makeText(tag, cls, content) {
@@ -146,7 +167,7 @@
     if (src) {
       const img = document.createElement("img");
       img.src = src;
-      img.alt = value(tour, "Tour Name") || "Rangtuli tour";
+      img.alt = text(tour, "Tour Name") || "Rangtuli tour";
       img.loading = "lazy";
       img.onerror = function () {
         imageWrap.classList.add("live-tour-image-empty");
@@ -162,20 +183,19 @@
 
     const body = document.createElement("div");
     body.className = "live-tour-body";
-    const category = value(tour, "Tour Category");
+    const category = text(tour, "Tour Category");
     if (category) body.appendChild(makeText("span", "live-tour-tag", category));
-    body.appendChild(makeText("h3", "live-tour-title", value(tour, "Tour Name") || "নতুন ট্যুর"));
-    const destination = value(tour, "Destinations");
+    body.appendChild(makeText("h3", "live-tour-title", text(tour, "Tour Name") || "নতুন ট্যুর"));
+    const destination = text(tour, "Destinations");
     if (destination) body.appendChild(makeText("p", "live-tour-destination", destination));
-    const desc = value(tour, "Description");
+    const desc = text(tour, "Description");
     if (desc) body.appendChild(makeText("p", "live-tour-description", desc));
-    const duration = value(tour, "Duration");
-    const schedule = value(tour, "Schedule");
     const meta = document.createElement("div");
     meta.className = "live-tour-meta";
-    [duration, schedule].filter(Boolean).forEach(s => meta.appendChild(makeText("span", "", s)));
+    [text(tour, "Duration"), text(tour, "Schedule")].filter(Boolean)
+      .forEach(s => meta.appendChild(makeText("span", "", s)));
     if (meta.childElementCount) body.appendChild(meta);
-    const price = value(tour, "Price Options");
+    const price = text(tour, "Price Options");
     if (price) body.appendChild(makeText("p", "live-tour-price", price));
 
     const actions = document.createElement("div");
@@ -185,14 +205,30 @@
     details.className = "button button-outline live-tour-details";
     details.textContent = "বিস্তারিত দেখুন";
     details.addEventListener("click", function () { showDetails(tour); });
-    const book = document.createElement("a");
-    book.className = "button button-dark live-tour-book";
-    book.href = whatsappUrl("আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের " +
-      (value(tour, "Tour Name") || "একটি ট্যুর") + " সম্পর্কে জানতে চাই।") || "#contact";
-    book.target = "_blank";
-    book.rel = "noopener noreferrer";
-    book.textContent = "বুকিং ↗";
-    actions.append(details, book);
+    actions.appendChild(details);
+
+    const wa = document.createElement("a");
+    wa.className = "button button-dark live-tour-book";
+    wa.textContent = "WhatsApp বুকিং ↗";
+    wa.href = whatsappUrl("আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের " +
+      (text(tour, "Tour Name") || "একটি ট্যুর") + " সম্পর্কে জানতে চাই।") || "#contact";
+    wa.target = "_blank";
+    wa.rel = "noopener noreferrer";
+    actions.appendChild(wa);
+
+    const msgr = document.createElement("a");
+    msgr.className = "button button-outline live-tour-messenger";
+    msgr.textContent = "Messenger ↗";
+    msgr.href = messengerUrl() || "#contact";
+    msgr.target = "_blank";
+    msgr.rel = "noopener noreferrer";
+    if (!messengerUrl()) {
+      msgr.addEventListener("click", function (e) {
+        e.preventDefault();
+        alert("js/config.js ফাইলে সঠিক Facebook Page URL বসান।");
+      });
+    }
+    actions.appendChild(msgr);
     body.appendChild(actions);
     card.appendChild(body);
     return card;
@@ -207,14 +243,13 @@
   }
   function showMessage(grid, message, error) {
     if (!grid) return;
-    const p = makeText("p", "tour-loading" + (error ? " tour-error" : ""), message);
-    grid.replaceChildren(p);
+    grid.replaceChildren(makeText("p", "tour-loading" + (error ? " tour-error" : ""), message));
   }
   function render(grid, tours, emptyMessage, moreButton) {
     if (!grid) return;
     grid.replaceChildren();
     const visible = shuffle(tours.filter(function (tour) {
-      const status = value(tour, "Website Status").toLowerCase();
+      const status = text(tour, "Website Status").toLowerCase();
       return !status || ["published", "publish", "live", "active", "প্রকাশিত"].includes(status);
     }));
     if (!visible.length) {
@@ -272,7 +307,6 @@
         if (relaxMore) relaxMore.hidden = true;
       });
   }
-
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 })();
