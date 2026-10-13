@@ -5,7 +5,7 @@
   Facebook Page URL: আপনার অফিসিয়াল পেজের লিংক।
 */
 window.RANGTULI_CONFIG = {
-  whatsappNumber: "881624229692",
+  whatsappNumber: "8801624229692",
   facebookPageUrl: "https://www.facebook.com/rangtulitour",
   brandName: "Rangtuli Tours & Travels"
 };
