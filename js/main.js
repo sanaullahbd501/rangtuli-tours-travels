@@ -55,7 +55,7 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
     }
     const first = list.slice(0, 3), rest = list.slice(3);
     grid.innerHTML = first.map((t,i) => card(t,type,i)).join('');
-    if (rest.length && window.matchMedia('(min-width: 801px)').matches) {
+    if (rest.length) {
       const peek = document.createElement('div');
       peek.className = 'rt-more-card';
       peek.innerHTML = card(rest[0],type,3) + `<div class="rt-more-shade"><a class="rt-more-circle" href="tours.html?type=${type}" aria-label="সব ${type==='day'?'ডে':'রিল্যাক্স'} ট্যুর দেখুন">আরও<br>দেখুন <span>↗</span></a></div>`;
