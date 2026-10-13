@@ -1,271 +1,93 @@
-(function () {
-  "use strict";
-  const config = window.RANGTULI_CONFIG || {};
-  const menuButton = document.querySelector(".menu-toggle");
-  const nav = document.querySelector(".primary-nav");
-
-  if (menuButton && nav) {
-    menuButton.addEventListener("click", function () {
-      const open = menuButton.getAttribute("aria-expanded") === "true";
-      menuButton.setAttribute("aria-expanded", String(!open));
-      menuButton.setAttribute("aria-label", open ? "মেনু খুলুন" : "মেনু বন্ধ করুন");
-      nav.classList.toggle("open", !open);
-    });
-    nav.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        nav.classList.remove("open");
-        menuButton.setAttribute("aria-expanded", "false");
-        menuButton.setAttribute("aria-label", "মেনু খুলুন");
-      });
-    });
+(() => {
+  const cfg = window.RANGTULI_CONFIG || {};
+  const api = (cfg.apiBaseUrl || '').replace(/\/$/, '') + '/api/tours';
+  const wa = cfg.whatsappNumber || '8801624229692';
+  const fb = cfg.facebookPageUrl || 'https://www.facebook.com/rangtulitour';
+  const norm = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9\u0980-\u09ff]/g, '');
+  const get = (o, ...keys) => {
+    if (!o) return '';
+    for (const key of keys) {
+      if (o[key] != null && String(o[key]).trim() !== '') return o[key];
+      const found = Object.keys(o).find(k => norm(k) === norm(key));
+      if (found && o[found] != null && String(o[found]).trim() !== '') return o[found];
+    }
+    return '';
+  };
+  const id = t => String(get(t, 'Package ID', 'packageId', 'id', 'tourId') || '').trim();
+  const name = t => get(t, 'Tour Name', 'tourName', 'name', 'title') || 'নতুন ট্যুর';
+  const price = t => {
+    const raw = String(get(t, 'Price Options', 'priceOptions', 'price') || '');
+    const part = raw.split(';').map(x => x.trim()).find(x => /regular|রেগুলার/i.test(x));
+    return part || raw.split(';').map(x => x.trim()).filter(Boolean)[0] || 'মূল্য জানতে যোগাযোগ করুন';
+  };
+  const images = t => String(get(t, 'Image URLs', 'imageUrls', 'images', 'imageUrl') || '').split(/[;,\n]/).map(x => x.trim()).filter(x => /^https?:\/\//i.test(x));
+  const published = t => !/^(no|false|0|draft|unpublished|hidden|বন্ধ)$/i.test(String(get(t, 'Website Status', 'websiteStatus', 'status') || '').trim());
+  const text = v => String(v ?? '').trim();
+  const safe = s => text(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const tourUrl = (t, type) => `tour.html?id=${encodeURIComponent(id(t))}&type=${encodeURIComponent(type)}`;
+  function card(t, type) {
+    const pic = images(t)[0];
+    return `<a class="rt-card" href="${tourUrl(t,type)}">${pic ? `<img class="rt-card-img" src="${safe(pic)}" alt="${safe(name(t))}" loading="lazy">` : '<div class="rt-card-img rt-no-image">রংতুলির সঙ্গে ঘুরে আসুন</div>'}<div class="rt-card-body"><span class="rt-card-tag">${type === 'day' ? 'ডে ট্যুর' : 'রিল্যাক্স ট্যুর'}</span><h3>${safe(name(t))}</h3><p class="rt-card-price">${safe(price(t))}</p><span class="rt-card-link">বিস্তারিত দেখুন ↗</span></div></a>`;
   }
-
-  function text(tour, key) {
-    const v = tour && tour[key];
-    return v == null ? "" : String(v).trim();
+  function homeGrid(gridId, moreId, tours, type) {
+    const grid = document.getElementById(gridId); if (!grid) return;
+    const btn = document.getElementById(moreId);
+    const list = tours.filter(published);
+    if (!list.length) { grid.innerHTML = '<p class="tour-loading">নতুন ট্যুরের তথ্য শিগগিরই যোগ করা হবে।</p>'; if(btn) btn.hidden = true; return; }
+    const first = list.slice(0, 3), rest = list.slice(3);
+    grid.innerHTML = first.map(t => card(t,type)).join('') + (rest.length ? `<div class="rt-more-card">${card(rest[0],type)}<div class="rt-more-shade"><a class="rt-more-circle" href="tours.html?type=${type}">আরও<br>দেখুন <span>↗</span></a></div></div>` : '');
+    if (btn) { btn.hidden = true; }
   }
-  function waUrl(message) {
-    const number = (config.whatsappNumber || "").replace(/\D/g, "");
-    return number.length >= 10 ? "https://wa.me/" + number + "?text=" + encodeURIComponent(message) : "";
-  }
-  function messengerUrl() {
-    const page = config.facebookPageUrl || "";
-    if (!page) return "";
-    const slug = page.replace(/\/+$/, "").split("/").pop();
-    return slug ? "https://m.me/" + slug : "";
-  }
-  function setLink(id, url, fallback) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (url) {
-      el.href = url;
-      el.target = "_blank";
-      el.rel = "noopener noreferrer";
-    } else {
-      el.href = "#contact";
-      el.addEventListener("click", function (e) {
-        e.preventDefault();
-        alert(fallback || "যোগাযোগের তথ্য পাওয়া যায়নি।");
-      });
+  async function load() {
+    try {
+      const r = await fetch(api, {cache:'no-store'}); if (!r.ok) throw new Error('API');
+      const data = await r.json();
+      const day = data.dayTours || data.day_tours || [];
+      const relax = data.relaxTours || data.relax_tours || [];
+      homeGrid('day-tour-grid','day-tour-more',day,'day');
+      homeGrid('relax-tour-grid','relax-tour-more',relax,'relax');
+      renderTourPage(day, relax);
+    } catch(e) {
+      ['day-tour-grid','relax-tour-grid'].forEach(k => { const el=document.getElementById(k); if(el) el.innerHTML='<p class="tour-loading">ট্যুরের তথ্য লোড করা যায়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।</p>'; });
+      const detail=document.getElementById('tour-detail'); if(detail) detail.innerHTML='<p class="tour-loading">ট্যুরের তথ্য লোড করা যায়নি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।</p>';
     }
   }
-  const greeting = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের ট্যুর সম্পর্কে জানতে চাই।";
-  setLink("whatsapp-cta", waUrl(greeting), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
-  setLink("whatsapp-float", waUrl(greeting), "js/config.js ফাইলে WhatsApp নম্বর যাচাই করুন।");
-  setLink("messenger-cta", messengerUrl(), "js/config.js ফাইলে Facebook Page URL যাচাই করুন।");
-
-  function make(tag, cls, content) {
-    const el = document.createElement(tag);
-    if (cls) el.className = cls;
-    if (content !== undefined) el.textContent = content;
-    return el;
+  function section(label, value, multiline=true) {
+    const v = text(value); if(!v) return '';
+    const html = v.split(/;|\n/).map(s=>s.trim()).filter(Boolean).map(s=>`<li>${safe(s)}</li>`).join('');
+    return `<section class="rt-detail-section"><h2>${safe(label)}</h2>${multiline ? `<ul>${html}</ul>` : `<p>${safe(v)}</p>`}</section>`;
   }
-
-  // Break fields at semicolons while preserving clean spacing.
-  function formattedText(parent, value) {
-    const parts = String(value).split(";").map(s => s.trim()).filter(Boolean);
-    parts.forEach(function (part) {
-      parent.appendChild(make("span", "tour-text-line", part));
-    });
-  }
-
-  function addDetail(parent, label, key, tour) {
-    const value = text(tour, key);
-    if (!value) return;
-    const item = make("div", "tour-inline-detail-item");
-    item.appendChild(make("h4", "", label));
-    const content = make("div", "tour-inline-detail-copy");
-    formattedText(content, value);
-    item.appendChild(content);
-    parent.appendChild(item);
-  }
-
-  function openDetails(card, tour) {
-    const existing = card.querySelector(".tour-expanded-details");
-    if (existing) {
-      existing.remove();
-      const trigger = card.querySelector(".live-tour-details");
-      if (trigger) {
-        trigger.setAttribute("aria-expanded", "false");
-        trigger.querySelector(".detail-label").textContent = "বিস্তারিত দেখুন";
-        trigger.querySelector(".detail-arrow").textContent = "↗";
-      }
-      return;
+  function renderTourPage(day, relax) {
+    const detail = document.getElementById('tour-detail');
+    const all = [...day.map(t=>({...t,__type:'day'})),...relax.map(t=>({...t,__type:'relax'}))];
+    if (detail) {
+      const params = new URLSearchParams(location.search); const wantedId = params.get('id') || ''; const type = params.get('type') || '';
+      const tour = all.find(t => id(t) === wantedId && (!type || t.__type === type)) || all.find(t=>id(t)===wantedId);
+      if (!tour || !published(tour)) { detail.innerHTML='<div class="rt-not-found"><h1>ট্যুরটি পাওয়া যায়নি</h1><p>ট্যুরটি সরানো হয়ে থাকতে পারে অথবা লিংকটি সঠিক নয়।</p><a class="rt-primary-btn" href="tours.html?type=day">সব ট্যুর দেখুন</a></div>'; return; }
+      const t=tour, pics=images(t), tourName=name(t), kind=t.__type;
+      const gallery = pics.length ? `<div class="rt-gallery">${pics.map((p,i)=>`<img src="${safe(p)}" alt="${safe(tourName)} — ছবি ${i+1}" loading="${i?'lazy':'eager'}">`).join('')}</div>` : '<div class="rt-gallery rt-no-image">রংতুলির সঙ্গে ঘুরে আসুন</div>';
+      const booking = `আমি ${tourName} (${id(t)}) ট্যুরের বুকিং ও বিস্তারিত জানতে চাই।`;
+      const waUrl = `https://wa.me/${encodeURIComponent(wa)}?text=${encodeURIComponent(booking)}`;
+      const details = `<div class="rt-detail-layout"><div>${section('গন্তব্য',get(t,'Destinations','destinations'),false)}${section('ট্যুরের বিবরণ',get(t,'Description','description'),false)}${section('সময়সূচি',get(t,'Schedule','schedule'),false)}${section('সময়কাল',get(t,'Duration','duration'),false)}${section('ভ্রমণ পরিকল্পনা / Itinerary',get(t,'Itinerary','itinerary'))}${section('প্যাকেজে যা অন্তর্ভুক্ত',get(t,'Included','included'))}${section('প্যাকেজে যা অন্তর্ভুক্ত নয়',get(t,'Excluded','excluded'))}${section('রুম / থাকার ব্যবস্থা',get(t,'Room/Stay Options','roomStayOptions','roomOptions'))}${section('পিকআপ পয়েন্ট',get(t,'Pickup Points','pickupPoints'))}${section('বিশেষ নির্দেশনা',get(t,'Special Occasion Notes','specialOccasionNotes'))}</div><aside class="rt-booking-box"><span class="rt-card-tag">${kind==='day'?'ডে ট্যুর':'রিল্যাক্স ট্যুর'}</span><h2>মূল্য ও বুকিং</h2>${section('প্যাকেজ মূল্য',get(t,'Price Options','priceOptions','price'))}${section('বুকিং অ্যামাউন্ট',get(t,'Booking Amount','bookingAmount'),false)}${section('পেমেন্টের তথ্য',get(t,'Booking Payment Details','bookingPaymentDetails'),false)}${section('যোগাযোগ',get(t,'Contact Numbers','contactNumbers'))}<a class="rt-primary-btn" href="${waUrl}" target="_blank" rel="noopener">WhatsApp-এ বুকিং করুন</a><a class="rt-secondary-btn" href="${fb}" target="_blank" rel="noopener">Messenger-এ যোগাযোগ</a></aside></div>`;
+      detail.innerHTML = `<div class="rt-detail-hero">${gallery}<div class="rt-detail-heading"><a class="rt-back-link" href="tours.html?type=${kind}">← সব ${kind==='day'?'ডে':'রিল্যাক্স'} ট্যুর</a><h1>${safe(tourName)}</h1><p>${safe(get(t,'Destinations','destinations'))}</p><div class="rt-hero-actions"><a class="rt-primary-btn" href="${waUrl}" target="_blank" rel="noopener">WhatsApp-এ বুকিং করুন</a><a class="rt-secondary-btn" href="${fb}" target="_blank" rel="noopener">Messenger</a></div></div></div>${details}`;
+      const others = (kind==='day'?day:relax).filter(published).filter(x=>id(x)!==id(t));
+      const opposite = kind==='day'?'relax':'day';
+      const related = document.getElementById('tour-related');
+      if(related) related.innerHTML=`<div class="rt-related-head"><h2>আরও ${kind==='day'?'ডে':'রিল্যাক্স'} ট্যুর</h2><a href="tours.html?type=${kind}">সব দেখুন ↗</a></div><div class="rt-card-grid">${others.slice(0,3).map(x=>card(x,kind)).join('') || '<p>এই মুহূর্তে অন্য ট্যুর নেই।</p>'}</div><p class="rt-opposite-link"><a href="tours.html?type=${opposite}">সব ${opposite==='day'?'ডে':'রিল্যাক্স'} ট্যুর দেখুন →</a></p>`;
     }
-    const panel = make("div", "tour-expanded-details");
-    panel.appendChild(make("h3", "tour-expanded-title", "প্যাকেজের বিস্তারিত"));
-    [
-      ["গন্তব্য", "Destinations"],
-      ["বিস্তারিত", "Description"],
-      ["সময়সূচি", "Schedule"],
-      ["সময়কাল", "Duration"],
-      ["ভ্রমণ পরিকল্পনা", "Itinerary"],
-      ["প্যাকেজে যা অন্তর্ভুক্ত", "Included"],
-      ["প্যাকেজে যা অন্তর্ভুক্ত নয়", "Excluded"],
-      ["থাকা / রুমের ব্যবস্থা", "Room/Stay Options"],
-      ["পিকআপ পয়েন্ট", "Pickup Points (comma-separated)"],
-      ["বিশেষ নির্দেশনা", "Special Occasion Notes"],
-      ["বুকিং অ্যামাউন্ট", "Booking Amount"],
-      ["বুকিং পেমেন্টের তথ্য", "Booking Payment Details"],
-      ["যোগাযোগ", "Contact Numbers (comma-separated)"]
-    ].forEach(pair => addDetail(panel, pair[0], pair[1], tour));
-
-    const name = text(tour, "Tour Name") || "একটি ট্যুর";
-    const price = text(tour, "Price Options");
-    const message = "আসসালামু আলাইকুম। আমি রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের " + name +
-      " সম্পর্কে জানতে চাই।" + (price ? "\nপ্যাকেজের মূল্য: " + price : "") +
-      "\nদয়া করে তারিখ, প্রাপ্যতা ও বুকিংয়ের নিয়ম জানাবেন।";
-    const actions = make("div", "tour-expanded-actions");
-    const wa = make("a", "tour-detail-wa", "WhatsApp-এ বুকিং ↗");
-    wa.href = waUrl(message) || "#contact";
-    wa.target = "_blank";
-    wa.rel = "noopener noreferrer";
-    actions.appendChild(wa);
-    const ms = make("a", "tour-detail-messenger", "Messenger-এ যোগাযোগ ↗");
-    ms.href = messengerUrl() || "#contact";
-    ms.target = "_blank";
-    ms.rel = "noopener noreferrer";
-    if (!messengerUrl()) ms.addEventListener("click", function (e) {
-      e.preventDefault();
-      alert("js/config.js ফাইলে সঠিক Facebook Page URL বসান।");
-    });
-    actions.appendChild(ms);
-    panel.appendChild(actions);
-
-    const trigger = card.querySelector(".live-tour-details");
-    trigger.insertAdjacentElement("afterend", panel);
-    trigger.setAttribute("aria-expanded", "true");
-    trigger.querySelector(".detail-label").textContent = "বিস্তারিত বন্ধ করুন";
-    trigger.querySelector(".detail-arrow").textContent = "↑";
-    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function imageUrl(tour) {
-    return text(tour, "Image URLs (comma-separated)").split(",").map(s => s.trim())
-      .find(s => /^https?:\/\//i.test(s)) || "";
-  }
-
-  function createCard(tour, index) {
-    const card = make("article", "live-tour-card live-tour-photo-card");
-    const image = make("div", "live-tour-image");
-    const src = imageUrl(tour);
-    if (src) {
-      const img = make("img");
-      img.src = src;
-      img.alt = text(tour, "Tour Name") || "Rangtuli tour";
-      img.loading = "lazy";
-      img.onerror = function () {
-        image.classList.add("live-tour-image-empty");
-        image.replaceChildren();
-        image.appendChild(make("span", "", "RANGTULI JOURNEYS"));
-      };
-      image.appendChild(img);
-    } else {
-      image.classList.add("live-tour-image-empty");
-      image.appendChild(make("span", "", "RANGTULI JOURNEYS"));
-    }
-    image.appendChild(make("div", "live-tour-image-shade"));
-    card.appendChild(image);
-
-    const content = make("div", "live-tour-photo-content");
-    content.appendChild(make("span", "live-tour-photo-kicker",
-      String(index + 1).padStart(2, "0") + " / " + (text(tour, "Tour Category") || "JOURNEY").toUpperCase()));
-    content.appendChild(make("h3", "live-tour-title", text(tour, "Tour Name") || "নতুন ট্যুর"));
-
-    // On the first card face, show only the Regular price, never the full price-options string.
-    const rawPrice = text(tour, "Price Options");
-    const regularMatch = rawPrice.match(/(?:^|[;,\n])\s*Regular\s*:\s*([^;,\n]+)/i);
-    const regularPrice = regularMatch ? regularMatch[1].trim() : "";
-    if (regularPrice) {
-      const priceNode = make("p", "live-tour-price", "Regular: " + regularPrice);
-      content.appendChild(priceNode);
-    } else if (rawPrice && !/couple\s*:/i.test(rawPrice) && !/;/i.test(rawPrice)) {
-      content.appendChild(make("p", "live-tour-price", rawPrice));
-    }
-
-    const details = make("button", "live-tour-details");
-    details.type = "button";
-    details.setAttribute("aria-expanded", "false");
-    details.append(make("span", "detail-label", "বিস্তারিত দেখুন"), make("span", "detail-arrow", "↗"));
-    details.addEventListener("click", function () { openDetails(card, tour); });
-    content.appendChild(details);
-    card.appendChild(content);
-    return card;
-  }
-
-  function shuffle(items) {
-    const arr = items.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-  function showMessage(grid, message, error) {
-    if (grid) grid.replaceChildren(make("p", "tour-loading" + (error ? " tour-error" : ""), message));
-  }
-  function render(grid, tours, emptyMessage, moreButton) {
-    if (!grid) return;
-    grid.replaceChildren();
-    const published = shuffle(tours.filter(function (tour) {
-      const status = text(tour, "Website Status").toLowerCase();
-      return !status || ["published", "publish", "live", "active", "প্রকাশিত"].includes(status);
-    }));
-    if (!published.length) {
-      showMessage(grid, emptyMessage, false);
-      if (moreButton) moreButton.hidden = true;
-      return;
-    }
-    const initialCount = 3;
-    published.forEach(function (tour, index) {
-      const card = createCard(tour, index);
-      if (index >= initialCount) card.classList.add("is-hidden-by-more");
-      grid.appendChild(card);
-    });
-    if (moreButton) {
-      moreButton.hidden = published.length <= initialCount;
-      moreButton.textContent = "সব ট্যুর দেখুন ↓";
-      moreButton.onclick = function () {
-        const hidden = grid.querySelectorAll(".is-hidden-by-more");
-        if (hidden.length) {
-          hidden.forEach(el => el.classList.remove("is-hidden-by-more"));
-          moreButton.textContent = "কম দেখুন ↑";
-        } else {
-          Array.from(grid.children).forEach(function (card, index) {
-            if (index >= initialCount) card.classList.add("is-hidden-by-more");
-          });
-          moreButton.textContent = "সব ট্যুর দেখুন ↓";
-          grid.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      };
+    const listing = document.getElementById('all-tours-grid');
+    if (listing) {
+      const type = new URLSearchParams(location.search).get('type')==='relax'?'relax':'day';
+      const items=(type==='day'?day:relax).filter(published);
+      const title=document.getElementById('all-tours-title'); if(title) title.textContent=type==='day'?'সব ডে ট্যুর':'সব রিল্যাক্স ট্যুর';
+      listing.innerHTML=items.length?items.map(t=>card(t,type)).join(''):'<p>এই ক্যাটাগরিতে এখনো কোনো ট্যুর প্রকাশ করা হয়নি।</p>';
+      const opposite=document.getElementById('opposite-tours-link'); if(opposite) opposite.href=`tours.html?type=${type==='day'?'relax':'day'}`;
+      const oppositeText=document.getElementById('opposite-tours-text'); if(oppositeText) oppositeText.textContent=`সব ${type==='day'?'রিল্যাক্স':'ডে'} ট্যুর দেখুন →`;
     }
   }
-
-  const apiBase = (config.apiBaseUrl || "").replace(/\/+$/, "");
-  const dayGrid = document.getElementById("day-tour-grid");
-  const relaxGrid = document.getElementById("relax-tour-grid");
-  const dayMore = document.getElementById("day-tour-more");
-  const relaxMore = document.getElementById("relax-tour-more");
-  if (apiBase && (dayGrid || relaxGrid)) {
-    fetch(apiBase + "/api/tours", { headers: { Accept: "application/json" } })
-      .then(function (response) {
-        if (!response.ok) throw new Error("API HTTP " + response.status);
-        return response.json();
-      })
-      .then(function (data) {
-        render(dayGrid, Array.isArray(data.dayTours) ? data.dayTours : [],
-          "ডে ট্যুরের তথ্য পাওয়া যায়নি। Google Sheet-এর Website Status ও sync যাচাই করুন।", dayMore);
-        render(relaxGrid, Array.isArray(data.relaxTours) ? data.relaxTours : [],
-          "রিল্যাক্স ট্যুরের তথ্য পাওয়া যায়নি। Google Sheet-এর Website Status ও sync যাচাই করুন।", relaxMore);
-      })
-      .catch(function (error) {
-        console.error("Rangtuli API error:", error);
-        showMessage(dayGrid, "ট্যুর লোড হয়নি। API সংযোগ পরীক্ষা করুন।", true);
-        showMessage(relaxGrid, "ট্যুর লোড হয়নি। API সংযোগ পরীক্ষা করুন।", true);
-        if (dayMore) dayMore.hidden = true;
-        if (relaxMore) relaxMore.hidden = true;
-      });
-  }
-  const year = document.getElementById("year");
-  if (year) year.textContent = new Date().getFullYear();
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle=document.querySelector('.nav-toggle'), nav=document.querySelector('.nav-links');
+    if(toggle && nav) toggle.addEventListener('click',()=>{nav.classList.toggle('is-open');toggle.setAttribute('aria-expanded',nav.classList.contains('is-open')?'true':'false');});
+    load();
+  });
 })();
