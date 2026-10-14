@@ -82,6 +82,65 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
     const html = v.split(/;|\n/).map(s=>s.trim()).filter(Boolean).map(s=>`<li>${safe(s)}</li>`).join('');
     return `<section class="rt-detail-section"><h2>${safe(label)}</h2>${multiline ? `<ul>${html}</ul>` : `<p>${safe(v)}</p>`}</section>`;
   }
+
+  function initSlideshows(root = document) {
+  root.querySelectorAll('[data-slideshow]').forEach(gallery => {
+    if (gallery.dataset.initialized === 'true') return;
+    gallery.dataset.initialized = 'true';
+
+    const slides = [...gallery.querySelectorAll('.rt-slide')];
+    const dots = [...gallery.querySelectorAll('.rt-slide-dot')];
+
+    if (slides.length < 2) return;
+
+    let current = 0;
+    let timer;
+
+    function showSlide(index) {
+              current = (index + slides.length) % slides.length;
+        
+              slides.forEach((slide, i) => {
+                slide.hidden = i !== current;
+              });
+        
+              dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === current);
+                dot.setAttribute('aria-current',
+                  i === current ? 'true' : 'false');
+              });
+            }
+        
+            function startAutoPlay() {
+              clearInterval(timer);
+              timer = setInterval(() => showSlide(current + 1), 4000);
+            }
+        
+            gallery.querySelector('.rt-slide-prev')
+              ?.addEventListener('click', () => {
+                showSlide(current - 1);
+                startAutoPlay();
+              });
+        
+            gallery.querySelector('.rt-slide-next')
+              ?.addEventListener('click', () => {
+                showSlide(current + 1);
+                startAutoPlay();
+              });
+        
+            dots.forEach(dot => {
+              dot.addEventListener('click', () => {
+                showSlide(Number(dot.dataset.slide));
+                startAutoPlay();
+              });
+            });
+        
+            gallery.addEventListener('mouseenter', () => clearInterval(timer));
+            gallery.addEventListener('mouseleave', startAutoPlay);
+        
+            showSlide(0);
+            startAutoPlay();
+          });
+        }
   function renderTourPage(day, relax) {
     const detail = document.getElementById('tour-detail');
     const all = [...day.map(t=>({...t,__type:'day'})),...relax.map(t=>({...t,__type:'relax'}))];
@@ -90,11 +149,42 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
       const tour = all.find(t => id(t) === wantedId && (!type || t.__type === type)) || all.find(t=>id(t)===wantedId);
       if (!tour || !published(tour)) { detail.innerHTML='<div class="rt-not-found"><h1>ট্যুরটি পাওয়া যায়নি</h1><p>ট্যুরটি সরানো হয়ে থাকতে পারে অথবা লিংকটি সঠিক নয়।</p><a class="rt-primary-btn" href="tours.html?type=day">সব ট্যুর দেখুন</a></div>'; return; }
       const t=tour, pics=images(t), tourName=name(t), kind=t.__type;
-      const gallery = pics.length ? `<div class="rt-gallery">${pics.map((p,i)=>`<img src="${safe(p)}" alt="${safe(tourName)} — ছবি ${i+1}" loading="${i?'lazy':'eager'}" onerror="this.onerror=null;this.outerHTML='<div class=&quot;rt-image-fallback&quot;>ছবিটি লোড করা যায়নি</div>'">`).join('')}</div>` : '<div class="rt-gallery rt-no-image">ছবি শিগগিরই যোগ করা হবে</div>';
+      const gallery = pics.length
+        ? `<div class="rt-gallery rt-slideshow" data-slideshow>
+             <div class="rt-slides">
+               ${pics.map((p, i) => `
+                 <img
+                   class="rt-slide"
+                   src="${safe(p)}"
+                   alt="${safe(tourName)} — ছবি ${i + 1}"
+                   loading="${i === 0 ? 'eager' : 'lazy'}"
+                   ${i === 0 ? '' : 'hidden'}
+                 >
+               `).join('')}
+             </div>
+             ${pics.length > 1 ? `
+               <button class="rt-slide-btn rt-slide-prev"
+                 type="button" aria-label="আগের ছবি">‹</button>
+               <button class="rt-slide-btn rt-slide-next"
+                 type="button" aria-label="পরের ছবি">›</button>
+               <div class="rt-slide-dots">
+                 ${pics.map((_, i) => `
+                   <button type="button"
+                     class="rt-slide-dot ${i === 0 ? 'active' : ''}"
+                     data-slide="${i}"
+                     aria-label="ছবি ${i + 1}"
+                     aria-current="${i === 0 ? 'true' : 'false'}">
+                   </button>
+                 `).join('')}
+               </div>
+             ` : ''}
+           </div>`
+        : '<div class="rt-gallery rt-no-image">ছবি শিগগিরই যোগ করা হবে</div>';
       const booking = `আমি ${tourName} (${id(t)}) ট্যুরের বুকিং ও বিস্তারিত জানতে চাই।`;
       const waUrl = `https://wa.me/${encodeURIComponent(wa)}?text=${encodeURIComponent(booking)}`;
       const details = `<div class="rt-detail-layout"><div>${section('গন্তব্য',get(t,'Destinations','destinations'),false)}${section('ট্যুরের বিবরণ',get(t,'Description','description'),false)}${section('সময়সূচি',get(t,'Schedule','schedule'),false)}${section('সময়কাল',get(t,'Duration','duration'),false)}${section('ভ্রমণ পরিকল্পনা / Itinerary',get(t,'Itinerary','itinerary'))}${section('প্যাকেজে যা অন্তর্ভুক্ত',get(t,'Included','included'))}${section('প্যাকেজে যা অন্তর্ভুক্ত নয়',get(t,'Excluded','excluded'))}${section('রুম / থাকার ব্যবস্থা',get(t,'Room/Stay Options','roomStayOptions','roomOptions'))}${section('পিকআপ পয়েন্ট',get(t,'Pickup Points','pickupPoints'))}${section('বিশেষ নির্দেশনা',get(t,'Special Occasion Notes','specialOccasionNotes'))}</div><aside class="rt-booking-box"><span class="rt-card-tag">${kind==='day'?'ডে ট্যুর':'রিল্যাক্স ট্যুর'}</span><h2>মূল্য ও বুকিং</h2>${section('প্যাকেজ মূল্য',get(t,'Price Options','priceOptions','price'))}${section('বুকিং অ্যামাউন্ট',get(t,'Booking Amount','bookingAmount'),false)}${section('পেমেন্টের তথ্য',get(t,'Booking Payment Details','bookingPaymentDetails'),false)}${section('যোগাযোগ',get(t,'Contact Numbers','contactNumbers'))}<a class="rt-primary-btn" href="${waUrl}" target="_blank" rel="noopener">WhatsApp-এ বুকিং করুন</a><a class="rt-secondary-btn" href="${fb}" target="_blank" rel="noopener">Messenger-এ যোগাযোগ</a></aside></div>`;
       detail.innerHTML = `<div class="rt-detail-hero">${gallery}<div class="rt-detail-heading"><a class="rt-back-link" href="tours.html?type=${kind}">← সব ${kind==='day'?'ডে':'রিল্যাক্স'} ট্যুর</a><h1>${safe(tourName)}</h1><p>${safe(get(t,'Destinations','destinations'))}</p><div class="rt-hero-actions"><a class="rt-primary-btn" href="${waUrl}" target="_blank" rel="noopener">WhatsApp-এ বুকিং করুন</a><a class="rt-secondary-btn" href="${fb}" target="_blank" rel="noopener">Messenger</a></div></div></div>${details}`;
+      initSlideshows(detail);
       const others = (kind==='day'?day:relax).filter(published).filter(x=>id(x)!==id(t));
       const opposite = kind==='day'?'relax':'day';
       const related = document.getElementById('tour-related');
