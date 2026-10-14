@@ -97,18 +97,20 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
     let timer;
 
     function showSlide(index) {
-              current = (index + slides.length) % slides.length;
-        
-              slides.forEach((slide, i) => {
-                slide.hidden = i !== current;
-              });
-        
-              dots.forEach((dot, i) => {
-                dot.classList.toggle('active', i === current);
-                dot.setAttribute('aria-current',
-                  i === current ? 'true' : 'false');
-              });
-            }
+        current = (index + slides.length) % slides.length;
+      
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === current);
+        });
+      
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === current);
+          dot.setAttribute(
+            'aria-current',
+            i === current ? 'true' : 'false'
+          );
+        });
+      }
         
             function startAutoPlay() {
               clearInterval(timer);
@@ -154,11 +156,11 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
              <div class="rt-slides">
                ${pics.map((p, i) => `
                  <img
-                   class="rt-slide"
+                   class="rt-slide ${i === 0 ? 'active' : ''}"
                    src="${safe(p)}"
                    alt="${safe(tourName)} — ছবি ${i + 1}"
                    loading="${i === 0 ? 'eager' : 'lazy'}"
-                   ${i === 0 ? '' : 'hidden'}
+                   
                  >
                `).join('')}
              </div>
