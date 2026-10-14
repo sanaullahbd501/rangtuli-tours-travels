@@ -206,5 +206,21 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
     const toggle=document.querySelector('.nav-toggle'), nav=document.querySelector('.nav-links');
     if(toggle && nav) toggle.addEventListener('click',()=>{nav.classList.toggle('is-open');toggle.setAttribute('aria-expanded',nav.classList.contains('is-open')?'true':'false');});
     load();
+    // WhatsApp and Messenger CTA links
+      const whatsappMessage =
+        'আসসালামু আলাইকুম, রংতুলি ট্যুরস অ্যান্ড ট্রাভেলসের ট্যুর প্যাকেজ সম্পর্কে জানতে চাই।';
+      
+      const whatsappUrl =
+        `https://wa.me/${encodeURIComponent(wa)}?text=${encodeURIComponent(whatsappMessage)}`;
+      
+      const messengerUrl = 'https://m.me/rangtulitour';
+      
+      ['whatsapp-cta', 'whatsapp-float'].forEach(id => {
+        const button = document.getElementById(id);
+        if (button) button.href = whatsappUrl;
+      });
+      
+      const messengerButton = document.getElementById('messenger-cta');
+      if (messengerButton) messengerButton.href = messengerUrl;
   });
 })();
