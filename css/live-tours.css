@@ -85,9 +85,6 @@
   border-radius: 0;
 }
 
-.rt-slideshow .rt-slide[hidden] {
-  display: none !important;
-}
 
 .rt-slideshow .rt-slide-btn {
   position: absolute;
