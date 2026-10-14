@@ -144,3 +144,22 @@
     height: 300px;
   }
 }
+
+
+
+/* Smooth crossfade slideshow */
+.rt-slideshow .rt-slide {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.7s ease-in-out,
+    visibility 0s linear 0.7s;
+}
+
+.rt-slideshow .rt-slide.active {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.7s ease-in-out,
+    visibility 0s;
+}
