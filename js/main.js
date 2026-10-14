@@ -114,7 +114,7 @@ const images = t => String(get(t, 'Image URLs (comma-separated)', 'Image URLs', 
         
             function startAutoPlay() {
               clearInterval(timer);
-              timer = setInterval(() => showSlide(current + 1), 4000);
+              timer = setInterval(() => showSlide(current + 1), 2000);
             }
         
             gallery.querySelector('.rt-slide-prev')
